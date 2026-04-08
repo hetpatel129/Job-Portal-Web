@@ -29,6 +29,7 @@ function Profile() {
                   <img
                     src={authUser.profile.profilePhoto}
                     alt={authUser?.fullname}
+                    loading="lazy"
                     className="w-24 h-24 rounded-2xl object-cover ring-2 ring-indigo-100 dark:ring-indigo-900/50"
                   />
                 ) : (

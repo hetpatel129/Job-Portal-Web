@@ -16,7 +16,7 @@ function LatestJobCards({ job }) {
       {/* Company */}
       <div className="flex items-center gap-3 mb-3">
         {company?.logo ? (
-          <img src={company.logo} alt={company.name} className="w-10 h-10 rounded-xl object-contain border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-800 p-1" />
+          <img src={company.logo} alt={company.name} loading="lazy" className="w-10 h-10 rounded-xl object-contain border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-800 p-1" />
         ) : (
           <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-sm flex-shrink-0">
             {company?.name?.charAt(0)?.toUpperCase() || <Briefcase size={16} />}

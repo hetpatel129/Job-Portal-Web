@@ -31,6 +31,7 @@ function Jobcard({ job }) {
           <img
             src={job.company.logo}
             alt={job.company.name}
+            loading="lazy"
             className="w-11 h-11 rounded-xl object-contain border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-800 p-1 flex-shrink-0"
           />
         ) : (

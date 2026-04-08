@@ -31,6 +31,7 @@ const OurPartnersSection = () => {
             <img
               src={partner.logo}
               alt={partner.name}
+              loading="lazy"
               className="h-10 object-contain"
             />
           </div>
