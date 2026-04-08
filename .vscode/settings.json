@@ -1,0 +1,8 @@
+{
+  "editor.fontFamily": "Fira Code",
+  "workbench.colorCustomizations": {
+    "sash.hoverBorder": "#78cea7"
+  },
+  "peacock.color": "#52c18f",
+  "kiroAgent.configureMCP": "Disabled"
+}

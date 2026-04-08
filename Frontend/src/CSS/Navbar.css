@@ -1,0 +1,52 @@
+/* Import the Inter Font */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+/* Apply the Font Globally */
+body {
+  font-family: "Inter", sans-serif;
+}
+
+.menu-button {
+  display: none;
+}
+nav ul {
+  display: flex;
+  color: white;
+  gap: 2rem;
+  transition: all 1s;
+  background-color: transparent;
+  z-index: 100;
+}
+
+@media (max-width: 768px) {
+  .menu-button {
+    display: block;
+  }
+
+  .menu-open {
+    display: flex;
+    background: linear-gradient(to right, #674e92, #431692);
+    gap: 1.5rem;
+    padding: 1rem 0;
+  }
+  nav ul {
+    display: none;
+    position: absolute;
+    top: 140%;
+    right: -20%;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
+  }
+}
+
+
+/* Hero Section */
+.herosec {
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),
+    url("../assets/download.jpeg");
+  background-color: #000; /* Fallback color */
+  background-size: cover;
+  background-position: center;
+}
