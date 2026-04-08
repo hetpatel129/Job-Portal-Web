@@ -88,9 +88,9 @@ const ApplicationAdmin = () => {
         </select>
       </div>
 
-      {/* Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow overflow-x-auto">
-        <table className="w-full text-sm">
+      {/* Table - desktop */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow overflow-x-auto hidden sm:block">
+        <table className="w-full text-sm min-w-[700px]">
           <thead className="bg-gray-50 dark:bg-gray-700 border-b dark:border-gray-600">
             <tr>
               {["Applicant", "Email", "Phone", "Job", "Company", "Status", "Applied On", "Action"].map((h) => (
@@ -139,6 +139,43 @@ const ApplicationAdmin = () => {
         <div className="px-4 py-3 text-xs text-gray-400 border-t dark:border-gray-700">
           Showing {filtered.length} of {apps.length} applications
         </div>
+      </div>
+
+      {/* Mobile cards */}
+      <div className="sm:hidden space-y-3">
+        {filtered.length === 0 ? (
+          <p className="text-center py-10 text-gray-400 text-sm">No applications found.</p>
+        ) : filtered.map((a) => (
+          <div key={a._id} className="bg-white dark:bg-gray-800 rounded-xl shadow p-4 space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                {a.applicant?.profile?.profilePhoto ? (
+                  <img src={a.applicant.profile.profilePhoto} loading="lazy" className="w-9 h-9 rounded-full object-cover" />
+                ) : (
+                  <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold">
+                    {a.applicant?.fullname?.charAt(0)}
+                  </div>
+                )}
+                <div>
+                  <p className="font-semibold text-sm text-gray-800 dark:text-gray-200">{a.applicant?.fullname}</p>
+                  <p className="text-xs text-gray-500">{a.applicant?.email}</p>
+                </div>
+              </div>
+              <button onClick={() => handleDelete(a._id)} className="text-red-500 hover:text-red-700 p-1">
+                <Trash2 size={15} />
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-2 text-xs text-gray-500 dark:text-gray-400">
+              <span>Job: <span className="font-medium text-gray-700 dark:text-gray-300">{a.job?.title || "N/A"}</span></span>
+              <span>Company: <span className="font-medium text-gray-700 dark:text-gray-300">{a.job?.company?.name || "N/A"}</span></span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${STATUS_STYLES[a.status] || "bg-gray-100 text-gray-600"}`}>{a.status}</span>
+              <span className="text-xs text-gray-400">{new Date(a.createdAt).toLocaleDateString()}</span>
+            </div>
+          </div>
+        ))}
+        <p className="text-xs text-gray-400 text-center pb-2">Showing {filtered.length} of {apps.length} applications</p>
       </div>
     </div>
   );

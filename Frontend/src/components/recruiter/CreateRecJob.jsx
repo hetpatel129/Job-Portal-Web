@@ -98,20 +98,19 @@ function CreateRecJob() {
   };
 
   return (
-    <div className="flex items-center justify-center w-screen my-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-start justify-center px-4 py-8">
       <form
         onSubmit={submitHandler}
-        className="px-6 py-4 max-w-4xl border border-gray-400 shadow-lg rounded-md"
+        className="w-full max-w-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm rounded-2xl px-6 py-6 space-y-4"
       >
-        <Button
-          variant="outline"
-          className="flex items-center gap-2 font-semibold text-gray-500"
-          onClick={() => navigate(-1)}
-        >
-          <ArrowLeft /> <span>Back</span>
-        </Button>
+        <div className="flex items-center gap-3 mb-2">
+          <button type="button" onClick={() => navigate(-1)} className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+            <ArrowLeft size={18} className="text-gray-500" />
+          </button>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Post a New Job</h2>
+        </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <Label>Title</Label>
             <Input
@@ -135,17 +134,14 @@ function CreateRecJob() {
             />
           </div>
 
-          <div className="col-span-2">
+          <div className="col-span-1 sm:col-span-2">
             <Label>Requirements</Label>
-            <p className="text-sm text-gray-500">
-              * Separate requirements with commas (e.g., React.js, Node.js,
-              MongoDB)
-            </p>
+            <p className="text-xs text-gray-500 mb-1">Separate with commas (e.g., React.js, Node.js)</p>
             <textarea
               name="requirements"
               value={input.requirements}
               onChange={changeEventHandler}
-              className="w-full border rounded-md p-2 my-1"
+              className="w-full border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
               rows="3"
             />
           </div>
@@ -214,33 +210,30 @@ function CreateRecJob() {
             />
           </div>
 
-          <div className="col-span-2">
+          <div className="col-span-1 sm:col-span-2">
             <Label>Company</Label>
-            {userCompanies?.length > 0 &&
-            userCompanies[0]?.status === "approved" ? (
+            {userCompanies?.length > 0 && userCompanies[0]?.status === "approved" ? (
               <Select onValueChange={selectChangeHandler}>
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="w-full mt-1">
                   <SelectValue placeholder="Select a company" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
                     {userCompanies.map((c) => (
-                      <SelectItem key={c._id} value={c._id}>
-                        {c.name}
-                      </SelectItem>
+                      <SelectItem key={c._id} value={c._id}>{c.name}</SelectItem>
                     ))}
                   </SelectGroup>
                 </SelectContent>
               </Select>
             ) : (
-              <p className="text-xs text-red-700 font-bold text-center my-3">
-                *Please Register a Company First before Posting New Jobs
+              <p className="text-xs text-red-600 font-semibold mt-2">
+                * Please register and get a company approved before posting jobs.
               </p>
             )}
           </div>
         </div>
 
-        <Button className="w-full mt-4" disabled={loading || !isFormValid()}>
+        <Button className="w-full mt-2" disabled={loading || !isFormValid()}>
           {loading ? "Posting..." : "Post Job"}
         </Button>
       </form>
