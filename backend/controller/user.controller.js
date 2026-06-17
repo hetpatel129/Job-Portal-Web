@@ -7,14 +7,11 @@ import { Job } from "../models/job.model.js";
 import { Application } from "../models/application.model.js";
 import { Company } from "../models/company.model.js";
 import { sendResetOtp, sendEmailChangeOtp, sendSignupOtp, sendWelcomeEmail } from "../utils/mailSend.js";
+import { SignupOtp } from "../models/signupOtp.model.js";
+import { ResetOtp } from "../models/resetOtp.model.js";
 
-// In-memory OTP store: { email: { otp, expiresAt } }
-const otpStore = {};
-// In-memory verified tokens: { token: email }
-const verifiedTokens = {};
-
-// In-memory pending signup store: { email: { otp, expiresAt, userData } }
-const signupOtpStore = {};
+// NOTE: All OTP data is now stored in MongoDB (TTL collections) so that
+// it persists across Vercel serverless cold starts.
 
 export const sendSignupOtpHandler = async (req, res) => {
   try {
@@ -29,11 +26,16 @@ export const sendSignupOtpHandler = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    signupOtpStore[email] = {
-      otp,
-      expiresAt: Date.now() + 10 * 60 * 1000,
-      userData: { fullname, email, phoneNumber, password: hashedPassword, role },
-    };
+    // Upsert into MongoDB (replaces any previous pending OTP for this email)
+    await SignupOtp.findOneAndUpdate(
+      { email },
+      {
+        otp,
+        userData: { fullname, email, phoneNumber, password: hashedPassword, role },
+        createdAt: new Date(), // reset TTL timer
+      },
+      { upsert: true, new: true }
+    );
 
     const result = await sendSignupOtp(otp, email, fullname);
     if (!result.success) return sendResponse(res, 500, null, "Failed to send OTP. Please try again.");
@@ -50,23 +52,21 @@ export const verifySignupOtp = async (req, res) => {
     const { email, otp } = req.body;
     if (!email || !otp) return sendResponse(res, 400, null, "Email and OTP are required");
 
-    const entry = signupOtpStore[email];
+    // Fetch from MongoDB instead of in-memory store
+    const entry = await SignupOtp.findOne({ email });
     if (!entry) return sendResponse(res, 400, null, "No pending signup for this email. Please sign up again.");
-    if (Date.now() > entry.expiresAt) {
-      delete signupOtpStore[email];
-      return sendResponse(res, 400, null, "OTP expired. Please sign up again.");
-    }
     if (entry.otp !== otp) return sendResponse(res, 400, null, "Invalid OTP");
 
     // Double-check email not taken during OTP window
     const existing = await User.findOne({ email });
     if (existing) {
-      delete signupOtpStore[email];
+      await SignupOtp.deleteOne({ email });
       return sendResponse(res, 400, null, "User already exists with this email");
     }
 
     const { userData } = entry;
-    delete signupOtpStore[email];
+    // Remove OTP record before creating user
+    await SignupOtp.deleteOne({ email });
 
     const user = await User.create({
       fullname: userData.fullname,
@@ -348,8 +348,13 @@ export const forgotPass = async (req, res) => {
 
     // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    // Store with 5-minute expiry
-    otpStore[email] = { otp, expiresAt: Date.now() + 5 * 60 * 1000 };
+
+    // Upsert into MongoDB (TTL: 5 min, set in resetOtp.model.js)
+    await ResetOtp.findOneAndUpdate(
+      { email },
+      { otp, createdAt: new Date() },
+      { upsert: true, new: true }
+    );
 
     const result = await sendResetOtp(otp, email);
     if (!result.success) {
@@ -371,20 +376,15 @@ export const verifyOtp = async (req, res) => {
     const { sotp } = req.body;
     if (!sotp) return sendResponse(res, 400, null, "OTP is required");
 
-    // Find which email this OTP belongs to
-    const entry = Object.entries(otpStore).find(([, v]) => v.otp === sotp);
+    // Find which email this OTP belongs to using MongoDB
+    const entry = await ResetOtp.findOne({ otp: sotp });
     if (!entry) return sendResponse(res, 400, null, "Invalid OTP");
 
-    const [email, { expiresAt }] = entry;
-    if (Date.now() > expiresAt) {
-      delete otpStore[email];
-      return sendResponse(res, 400, null, "OTP has expired. Please request a new one.");
-    }
+    const email = entry.email;
 
     // OTP valid — clean up and issue a reset token
-    delete otpStore[email];
+    await ResetOtp.deleteOne({ email });
     const resetToken = jwt.sign({ email, purpose: "reset" }, process.env.JWT_KEY, { expiresIn: "10m" });
-    verifiedTokens[resetToken] = email;
 
     return sendResponse(res, 200, resetToken, "OTP verified successfully");
   } catch (error) {
