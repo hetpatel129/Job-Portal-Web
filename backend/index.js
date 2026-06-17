@@ -21,15 +21,31 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+const allowedOrigins = [
+  process.env.ORIGIN,
+  "https://job-portal-web-six.vercel.app",  // production frontend
+  "http://localhost:5174",
+  "http://localhost:5173",
+].filter(Boolean);
+
 const corsOptions = {
-  origin: [process.env.ORIGIN, "http://localhost:5174", "http://localhost:5173"],
-  methods: "GET,POST,PUT,DELETE",
+  origin: (origin, callback) => {
+    // Allow requests with no origin (e.g. mobile apps, curl, Postman)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS: origin '${origin}' not allowed`));
+    }
+  },
+  methods: "GET,HEAD,POST,PUT,PATCH,DELETE,OPTIONS",
   allowedHeaders: "Content-Type,Authorization",
   credentials: true,
+  optionsSuccessStatus: 200,
 };
 
 // Use CORS with the defined options
 app.use(cors(corsOptions));
+app.options("*", cors(corsOptions)); // pre-flight for all routes
 
 // Define routes
 app.use("/api/v1/user", userRouter);
@@ -50,11 +66,15 @@ app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok" });
 });
 
-// Start the server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
-});
-
 // Connect to the database
 dbConnect();
+
+// Start the server (only in local dev — Vercel handles this via export)
+if (process.env.NODE_ENV !== "production") {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Server running at http://localhost:${PORT}`);
+  });
+}
+
+export default app;
