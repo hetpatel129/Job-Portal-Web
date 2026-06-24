@@ -1,57 +1,41 @@
-# Job Portal Web Application
+# 🏢 Job Portal System
 
-## Overview
+A full-stack job portal where employers can post jobs 
+and job seekers can apply — built with the MERN stack.
 
-The Job Portal Web Application is a comprehensive platform built using the MERN stack (MongoDB, Express.js, React, Node.js) designed to bridge the gap between job seekers and employers. It offers a dynamic, interactive, and user-friendly environment for job searching, application management, and recruitment processes.
+## 🚀 Live Demo
+https://job-portal-web-six.vercel.app/
 
-## Features
+## ✨ Features
+- JWT-based Authentication & Authorization
+- Role-based Access Control (Admin / Employer / Job Seeker)
+- Job Listings with Search & Filter
+- Apply to Jobs with Application Tracking
+- Protected Routes & Real-time Form Validation
+- RESTful API Architecture
 
-### For Job Seekers
+## 🛠️ Tech Stack
+**Frontend:** React.js, Tailwind CSS, React Router
+**Backend:** Node.js, Express.js
+**Database:** MongoDB
+**Auth:** JWT (JSON Web Tokens)
+**Tools:** Git, Postman, VS Code
 
-- **User Authentication**: Secure registration and login with JWT-based authentication.
-- **Profile Management**: Create and manage user profiles, including resume uploads and profile photos.
-- **Job Search**: Advanced job search functionality with filters for location, industry, and job title.
-- **Application Tracking**: Apply for jobs, track application statuses, and view application history.
-- **Notifications**: Receive updates on new job postings and application status changes.
+## 📸 Screenshots
+<img width="947" height="412" alt="image" src="https://github.com/user-attachments/assets/0fa559a7-16c0-469a-856e-1449555f294b" />
 
-### For Recruiters
+<img width="946" height="411" alt="image" src="https://github.com/user-attachments/assets/01bdeafa-dead-4041-a8e7-7984e013e02e" />
 
-- **Company Profiles**: Register and manage company profiles with job postings.
-- **Job Postings**: Create, update, and manage job listings.
-- **Application Review**: View and manage job applications, and shortlist candidates.
-- **Dashboard**: Access metrics and manage job postings through a comprehensive dashboard.
+<img width="948" height="410" alt="image" src="https://github.com/user-attachments/assets/b27b9c1d-f8c6-46ee-8859-e7e3460f3ca5" />
 
-## Technology Stack
 
-- **Frontend**:
+## ⚙️ Installation
+```bash
+git clone [your-repo-link]
+cd job-portal
+npm install
+npm run dev
+```
 
-  - React.js for building the user interface
-  - React Router for client-side routing
-  - CSS-in-JS or traditional CSS for styling
-
-- **Backend**:
-
-  - Node.js with Express.js for RESTful API development
-  - JWT for user authentication and authorization
-
-- **Database**:
-
-  - MongoDB for storing user and job-related data
-  - Mongoose for ODM (Object Data Modeling)
-
-## Installation
-
-### Prerequisites
-
-- Node.js and npm (or yarn) installed
-- MongoDB server (local or cloud-based)
-- Git for version control
-
-### Setup Instructions
-
-1. **Clone the Repository**
-
-   ```bash
-   git clone https://github.com/yourusername/job-portal.git
-   cd job-portal
-   ```
+## 📬 Contact
+**Het Patel** — [linkedin.com/in/hetpatel-merndev]
