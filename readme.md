@@ -31,7 +31,7 @@ https://job-portal-web-six.vercel.app/
 
 ## ⚙️ Installation
 ```bash
-git clone [your-repo-link]
+git clone https://github.com/hetpatel129/Job-Portal-Web.git 
 cd job-portal
 npm install
 npm run dev
