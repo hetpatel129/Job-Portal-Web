@@ -1,3 +1,11 @@
+import sgMail from "@sendgrid/mail";
+
+// Initialize SendGrid if API key is available
+if (process.env.SENDGRID_API_KEY) {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+}
+
+// Fallback to Nodemailer for Gmail SMTP (if SendGrid not configured)
 import nodemailer from "nodemailer";
 
 const createTransporter = () =>
@@ -9,17 +17,46 @@ const createTransporter = () =>
     },
   });
 
+// Helper to send email via SendGrid or fallback to Gmail
+const sendEmail = async (mailOptions) => {
+  // Try SendGrid first if configured
+  if (process.env.SENDGRID_API_KEY && process.env.SENDGRID_FROM_EMAIL) {
+    try {
+      const msg = {
+        to: mailOptions.to,
+        from: {
+          email: process.env.SENDGRID_FROM_EMAIL,
+          name: process.env.SENDGRID_FROM_NAME || "Job Portal",
+        },
+        subject: mailOptions.subject,
+        html: mailOptions.html,
+      };
+      await sgMail.send(msg);
+      console.log(`✅ Email sent via SendGrid to ${mailOptions.to}`);
+      return { success: true, provider: "SendGrid" };
+    } catch (error) {
+      console.error("❌ SendGrid failed:", error.message);
+      // Don't fallback on SendGrid failure - throw to caller
+      throw error;
+    }
+  }
+
+  // Fallback to Gmail SMTP if SendGrid not configured
+  console.log("⚠️ SendGrid not configured, using Gmail SMTP fallback");
+  const transporter = createTransporter();
+  await transporter.sendMail(mailOptions);
+  console.log(`✅ Email sent via Gmail SMTP to ${mailOptions.to}`);
+  return { success: true, provider: "Gmail SMTP" };
+};
+
 export const sendSignupOtp = async (otp, recipientEmail, fullname) => {
   try {
     console.log(`[sendSignupOtp] Attempting to send OTP to ${recipientEmail}`);
-    console.log(`[sendSignupOtp] EMAIL_USER configured: ${process.env.EMAIL_USER ? 'YES' : 'NO'}`);
-    console.log(`[sendSignupOtp] EMAIL_PASS configured: ${process.env.EMAIL_PASS ? 'YES' : 'NO'}`);
-    
-    const transporter = createTransporter();
+    console.log(`[sendSignupOtp] SendGrid configured: ${process.env.SENDGRID_API_KEY ? 'YES' : 'NO'}`);
     
     const mailOptions = {
-      from: `"Job Portal" <${process.env.EMAIL_USER}>`,
       to: recipientEmail,
+      from: `"Job Portal" <${process.env.EMAIL_USER}>`, // fallback for Gmail
       subject: "Verify Your Email — Job Portal",
       html: `
         <div style="font-family:Arial,sans-serif;color:#333;max-width:500px;margin:auto;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">
@@ -38,9 +75,9 @@ export const sendSignupOtp = async (otp, recipientEmail, fullname) => {
         </div>`,
     };
     
-    console.log(`[sendSignupOtp] Sending email via Gmail SMTP...`);
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`[sendSignupOtp] Email sent successfully! MessageId: ${info.messageId}`);
+    console.log(`[sendSignupOtp] Sending email...`);
+    const result = await sendEmail(mailOptions);
+    console.log(`[sendSignupOtp] Email sent successfully via ${result.provider}`);
     
     return { success: true };
   } catch (error) {
@@ -53,13 +90,13 @@ export const sendSignupOtp = async (otp, recipientEmail, fullname) => {
 
 export const sendWelcomeEmail = async (recipientEmail, fullname, role) => {
   try {
-    const transporter = createTransporter();
     const roleText = role === "recruiter"
       ? "You can now post jobs and find top talent."
       : "You can now browse thousands of jobs and apply with one click.";
-    await transporter.sendMail({
-      from: `"Job Portal" <${process.env.EMAIL_USER}>`,
+    
+    const mailOptions = {
       to: recipientEmail,
+      from: `"Job Portal" <${process.env.EMAIL_USER}>`,
       subject: `Welcome to Job Portal, ${fullname}!`,
       html: `
         <div style="font-family:Arial,sans-serif;color:#333;max-width:500px;margin:auto;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">
@@ -76,7 +113,9 @@ export const sendWelcomeEmail = async (recipientEmail, fullname, role) => {
             <p style="font-size:13px;color:#6b7280;">The Job Portal Team</p>
           </div>
         </div>`,
-    });
+    };
+    
+    await sendEmail(mailOptions);
     return { success: true };
   } catch (error) {
     console.error("sendWelcomeEmail error:", error.message);
@@ -86,10 +125,9 @@ export const sendWelcomeEmail = async (recipientEmail, fullname, role) => {
 
 export const sendEmailChangeOtp = async (otp, recipientEmail) => {
   try {
-    const transporter = createTransporter();
-    await transporter.sendMail({
-      from: `"Job Portal - Support" <${process.env.EMAIL_USER}>`,
+    const mailOptions = {
       to: recipientEmail,
+      from: `"Job Portal - Support" <${process.env.EMAIL_USER}>`,
       subject: "Verify Your New Email Address",
       html: `
         <div style="font-family: Arial, sans-serif; color: #333; max-width: 500px; margin: auto; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
@@ -106,7 +144,9 @@ export const sendEmailChangeOtp = async (otp, recipientEmail) => {
           </div>
         </div>
       `,
-    });
+    };
+    
+    await sendEmail(mailOptions);
     return { success: true };
   } catch (error) {
     console.error("Error sending email change OTP:", error.message);
@@ -116,10 +156,9 @@ export const sendEmailChangeOtp = async (otp, recipientEmail) => {
 
 export const sendResetOtp = async (otp, recipientEmail) => {
   try {
-    const transporter = createTransporter();
-    await transporter.sendMail({
-      from: `"JOB PORTAL - Support Team" <${process.env.EMAIL_USER}>`,
+    const mailOptions = {
       to: recipientEmail,
+      from: `"JOB PORTAL - Support Team" <${process.env.EMAIL_USER}>`,
       subject: "Password Reset Request",
       html: `
         <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
@@ -133,7 +172,9 @@ export const sendResetOtp = async (otp, recipientEmail) => {
           <p>Best regards,<br>The Job Portal Support Team</p>
         </div>
       `,
-    });
+    };
+    
+    await sendEmail(mailOptions);
     console.log("OTP email sent to", recipientEmail);
     return { success: true, message: "Email sent successfully" };
   } catch (error) {
@@ -155,10 +196,9 @@ export const sendStatusEmail = async (recipientEmail, applicantName, jobTitle, c
   if (!msgInfo) return;
 
   try {
-    const transporter = createTransporter();
-    await transporter.sendMail({
-      from: `"Job Portal" <${process.env.EMAIL_USER}>`,
+    const mailOptions = {
       to: recipientEmail,
+      from: `"Job Portal" <${process.env.EMAIL_USER}>`,
       subject: msgInfo.subject,
       html: `
         <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: auto;">
@@ -174,7 +214,9 @@ export const sendStatusEmail = async (recipientEmail, applicantName, jobTitle, c
           <p>Best regards,<br>The Job Portal Team</p>
         </div>
       `,
-    });
+    };
+    
+    await sendEmail(mailOptions);
     console.log(`Status email sent to ${recipientEmail}`);
   } catch (error) {
     console.error("Error sending status email:", error.message);
@@ -187,10 +229,9 @@ export const sendInterviewEmail = async (recipientEmail, applicantName, jobTitle
   const formattedTime = date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
 
   try {
-    const transporter = createTransporter();
-    await transporter.sendMail({
-      from: `"Job Portal" <${process.env.EMAIL_USER}>`,
+    const mailOptions = {
       to: recipientEmail,
+      from: `"Job Portal" <${process.env.EMAIL_USER}>`,
       subject: `Interview Scheduled - ${jobTitle} at ${companyName}`,
       html: `
         <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: auto; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
@@ -219,7 +260,9 @@ export const sendInterviewEmail = async (recipientEmail, applicantName, jobTitle
           </div>
         </div>
       `,
-    });
+    };
+    
+    await sendEmail(mailOptions);
     console.log(`Interview email sent to ${recipientEmail}`);
   } catch (error) {
     console.error("Error sending interview email:", error.message);
