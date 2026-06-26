@@ -47,6 +47,17 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions)); // pre-flight for all routes
 
+// Connect to the database on every request (serverless-safe)
+app.use(async (req, res, next) => {
+  try {
+    await dbConnect();
+    next();
+  } catch (err) {
+    console.error("DB connection failed:", err.message);
+    res.status(503).json({ success: false, message: "Database unavailable. Please try again." });
+  }
+});
+
 // Define routes
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/company", companyRouter);
@@ -65,9 +76,6 @@ app.get("/", (req, res) => {
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok" });
 });
-
-// Connect to the database
-dbConnect();
 
 // Start the server (only in local dev — Vercel handles this via export)
 if (process.env.NODE_ENV !== "production") {
