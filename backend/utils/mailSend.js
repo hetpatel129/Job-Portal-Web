@@ -11,8 +11,13 @@ const createTransporter = () =>
 
 export const sendSignupOtp = async (otp, recipientEmail, fullname) => {
   try {
+    console.log(`[sendSignupOtp] Attempting to send OTP to ${recipientEmail}`);
+    console.log(`[sendSignupOtp] EMAIL_USER configured: ${process.env.EMAIL_USER ? 'YES' : 'NO'}`);
+    console.log(`[sendSignupOtp] EMAIL_PASS configured: ${process.env.EMAIL_PASS ? 'YES' : 'NO'}`);
+    
     const transporter = createTransporter();
-    await transporter.sendMail({
+    
+    const mailOptions = {
       from: `"Job Portal" <${process.env.EMAIL_USER}>`,
       to: recipientEmail,
       subject: "Verify Your Email — Job Portal",
@@ -31,11 +36,18 @@ export const sendSignupOtp = async (otp, recipientEmail, fullname) => {
             <p style="font-size:13px;color:#6b7280;">If you did not sign up, please ignore this email.</p>
           </div>
         </div>`,
-    });
+    };
+    
+    console.log(`[sendSignupOtp] Sending email via Gmail SMTP...`);
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`[sendSignupOtp] Email sent successfully! MessageId: ${info.messageId}`);
+    
     return { success: true };
   } catch (error) {
-    console.error("sendSignupOtp error:", error.message);
-    return { success: false };
+    console.error("[sendSignupOtp] FAILED - Full error:", error);
+    console.error("[sendSignupOtp] Error message:", error.message);
+    console.error("[sendSignupOtp] Error code:", error.code);
+    return { success: false, error: error.message };
   }
 };
 
